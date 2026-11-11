@@ -53,7 +53,7 @@ html = f"""<!doctype html>
 <title>DK1 tested models</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
-<script>window.Plotly || document.write('<script src="https://unpkg.com/plotly.js-dist-min@2.35.2/plotly.min.js"><\/script>')</script>
+<script>window.Plotly || document.write('<script src="https://unpkg.com/plotly.js-dist-min@2.35.2/plotly.min.js"><\\/script>')</script>
 <style>
 :root{{--ink:#1c1917;--muted:#78716c;--line:#ebe7e3;--grid:#f0ece8;--gold:#c0800c;--crimson:#b32640;--blue:#1c7fb0;--olive:#5b8a1a;--naive:#a8a29e;--link:#9a5b06;--soft:#fbf8f4}}
 *{{box-sizing:border-box}}body{{margin:0;background:#fff;color:var(--ink);font:16px/1.55 'Instrument Sans',system-ui,sans-serif}}
@@ -117,7 +117,7 @@ a{{color:var(--link)}}footer{{color:var(--muted);font-size:14px;margin-top:60px;
 <li>Settings were chosen only on every 7th day from October 2024 to September 2025, then frozen.</li>
 <li>Each forecast uses only data available before the day-ahead auction closes. Nothing is refit after seeing the test days.</li>
 <li>Differences against today's ensemble are tested with Diebold-Mariano (Newey-West, 7 lags). The best mix is not trusted on its own: the tied set says how many mixes are as good.</li>
-<li>A winner goes live as a challenger, saved next to the forecast but not shown, and is judged on 1 March 2027.</li>
+<li>Winners go live as challengers, saved next to the forecast but not shown. Chronos-2 with the gas models, and Chronos-2 with the PyTorch network, started on 13 November 2026: they get one early check on 15 December 2026 (p <li>A winner goes live as a challenger, saved next to the forecast but not shown, and is judged on 1 March 2027.</li>lt; 0.01), otherwise they are judged on 1 March 2027.</li>
 </ol>
 <footer>Built from the files in <a href="https://github.com/jacobazu/dk1-model-comparison">results/</a>. Prices from Energi Data Service.</footer>
 </main>

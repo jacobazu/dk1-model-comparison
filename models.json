@@ -8,7 +8,7 @@
  "r_net": {"name": "R network", "short": "R net", "kind": "new",
   "what": "A small network written in base R: two layers (192 and 96), dropout, Huber loss. Three seeds averaged, refit every day."},
  "torch_plain": {"name": "PyTorch network", "short": "Torch", "kind": "new",
-  "what": "Two layers (512 and 256) predicting all 24 hours at once, trained from scratch every day on the same inputs as LEAR-X. Three seeds averaged."},
+  "what": "Two layers (256 and 128) predicting all 24 hours at once, trained from scratch every day on the same inputs as LEAR-X. Three seeds averaged."},
  "torch_warm": {"name": "PyTorch, warm start", "short": "Torch warm", "kind": "new",
   "what": "A network plus a straight linear path, kept from one day to the next and only updated with the new day instead of retrained."},
  "torch_dist": {"name": "PyTorch, distribution", "short": "Torch dist", "kind": "new",

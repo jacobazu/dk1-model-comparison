@@ -1,0 +1,69 @@
+name: timestral
+
+# timestral (mistral, released 11 nov 2026) on the same 377 test days as the other models, scored the same way.
+# it may have seen these days in training, so only its live days are a clean test. results committed as one csv
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/timestral.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          pip install --quiet torch --index-url https://download.pytorch.org/whl/cpu
+          pip install --quiet numpy pandas "git+https://github.com/mistralai/timestral.git@a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff"
+      - name: Forecast
+        env:
+          SHARD: ${{ matrix.shard }}
+          SHARDS: 8
+        run: python foundation.py timestral inputs/daily.csv out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: timestral-${{ matrix.shard }}
+          path: out/timestral
+
+  collect:
+    needs: run
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: timestral-*
+          path: art
+          merge-multiple: true
+      - name: One file
+        run: |
+          python - <<'PY'
+          import json, glob, csv
+          rows = []
+          for f in sorted(glob.glob("art/**/*.json", recursive=True)):
+              d = json.load(open(f))
+              rows += [(d["date"], h, v) for h, v in enumerate(d["forecast"])]
+          with open("results/timestral.csv", "w", newline="") as fh:
+              w = csv.writer(fh); w.writerow(["date", "hour", "forecast"]); w.writerows(rows)
+          print(len(rows) // 24, "days")
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/timestral.csv
+          git commit -m "timestral on the test days" || echo "nothing new"
+          git pull --rebase && git push

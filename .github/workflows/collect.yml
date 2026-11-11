@@ -1,0 +1,43 @@
+name: collect tabpfn
+
+# gathers the tabpfn run's day files into one csv in the repository, so they can be read without the artifacts
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/collect.yml"]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: tabpfn-*
+          path: art
+          merge-multiple: true
+          run-id: 42976096510
+          github-token: ${{ github.token }}
+      - name: One file
+        run: |
+          python - <<'PY'
+          import json, glob, csv
+          rows = []
+          for f in sorted(glob.glob("art/**/*.json", recursive=True)):
+              d = json.load(open(f))
+              rows += [(d["date"], h, v) for h, v in enumerate(d["forecast"])]
+          with open("results/tabpfn_github.csv", "w", newline="") as fh:
+              w = csv.writer(fh); w.writerow(["date", "hour", "forecast"]); w.writerows(rows)
+          print(len(rows) // 24, "days")
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/tabpfn_github.csv
+          git commit -m "tabpfn days from the github run" || echo "nothing new"
+          git pull --rebase && git push

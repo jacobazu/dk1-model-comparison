@@ -41,3 +41,4 @@ jobs:
           git add results/tabpfn_github.csv
           git commit -m "tabpfn days from the github run" || echo "nothing new"
           git pull --rebase && git push
+# collected again after the last shard finished

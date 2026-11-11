@@ -8,7 +8,7 @@ from scipy import stats
 
 MODELS = ["bmtx", "learx", "xgbx", "r_net", "torch_plain", "torch_warm", "torch_dist", "chronos2", "tabpfn"]
 TODAY = ["bmtx", "learx", "xgbx"]
-CHECKS = ["chronos2_prices_only"]   # shown, not part of any combination
+CHECKS = ["chronos2_prices_only", "timestral"]   # shown, not part of any combination
 
 
 def dm(d, lag=7):

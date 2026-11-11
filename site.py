@@ -117,7 +117,8 @@ a{{color:var(--link)}}footer{{color:var(--muted);font-size:14px;margin-top:60px;
 <li>Settings were chosen only on every 7th day from October 2024 to September 2025, then frozen.</li>
 <li>Each forecast uses only data available before the day-ahead auction closes. Nothing is refit after seeing the test days.</li>
 <li>Differences against today's ensemble are tested with Diebold-Mariano (Newey-West, 7 lags). The best mix is not trusted on its own: the tied set says how many mixes are as good.</li>
-<li>Winners go live as challengers, saved next to the forecast but not shown. Chronos-2 with the gas models, and Chronos-2 with the PyTorch network, started on 13 November 2026: they get one early check on 15 December 2026 (p <li>A winner goes live as a challenger, saved next to the forecast but not shown, and is judged on 1 March 2027.</li>lt; 0.01), otherwise they are judged on 1 March 2027.</li>
+<li>Winners go live as challengers, saved next to the forecast but not shown. Chronos-2 with the gas models, Chronos-2 with the PyTorch network, and Timestral with the gas models started on 13 November 2026. They get one early check on 15 December 2026 (p &lt; 0.01), otherwise they are judged on 1 March 2027.</li>
+<li>A model released after the test days began may have seen them in training. It is shown, but kept out of the mixes, and only its live record counts.</li>
 </ol>
 <footer>Built from the files in <a href="https://github.com/jacobazu/dk1-model-comparison">results/</a>. Prices from Energi Data Service.</footer>
 </main>

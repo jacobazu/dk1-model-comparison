@@ -1,0 +1,80 @@
+name: level models
+
+# part C of level/RULES.md: lear-x, bmt-x and xgboost-x, as they are and on prices relative to gas, with the live
+# r code from jacobazu/dk1-price-forecasting at a fixed commit and the packages from its lock file. 20 jobs
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/level_models.yml", "level/models.R"]
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          repository: jacobazu/dk1-price-forecasting
+          ref: ca624537dbe236a882a2c558e473ee07afe9da04
+          path: price
+      # github's own ubuntu mirror has been failing since late oct 2026
+      - name: Ubuntu mirrors
+        run: |
+          printf 'http://ftp.uni-stuttgart.de/ubuntu/\nhttp://mirrors.edge.kernel.org/ubuntu/\n' | sudo tee /etc/apt/apt-mirrors.txt
+          printf 'Acquire::Retries "3";\nAcquire::http::Timeout "20";\nAcquire::https::Timeout "20";\n' | sudo tee /etc/apt/apt.conf.d/99timeouts
+      - uses: r-lib/actions/setup-r@v2
+        timeout-minutes: 25
+        with:
+          r-version: renv
+          use-public-rspm: true
+          working-directory: price
+      - uses: r-lib/actions/setup-renv@v2
+        with:
+          working-directory: price
+      - name: Forecast
+        working-directory: price
+        run: Rscript ../level/models.R ../level/daily_with_live.csv ${{ matrix.shard }} 20 ../partC_${{ matrix.shard }}.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: levelC-${{ matrix.shard }}
+          path: partC_*.csv
+
+  collect:
+    needs: run
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: levelC-*
+          path: art
+          merge-multiple: true
+      - name: One file
+        run: |
+          python3 - <<'PY'
+          import glob, csv
+          rows, head = [], None
+          for f in sorted(glob.glob("art/**/partC_*.csv", recursive=True)):
+              with open(f) as fh:
+                  r = list(csv.reader(fh)); head = r[0]; rows += r[1:]
+          rows.sort(key=lambda r: (r[0], r[2], r[3], int(r[1])))
+          with open("level/forecasts_C.csv", "w", newline="") as fh:
+              w = csv.writer(fh); w.writerow(head); w.writerows(rows)
+          print(len(rows) // 24, "day-model-variants")
+          PY
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add level/forecasts_C.csv
+          git commit -m "level test, part C: forecasts" || echo "nothing new"
+          git pull --rebase && git push

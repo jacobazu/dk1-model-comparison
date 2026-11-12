@@ -1,0 +1,66 @@
+name: level
+
+# lear-x with prices relative to a moving level, level/RULES.md. part A in 10 jobs, part B in 6, one csv each
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/level.yml", "level/level.py"]
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        job: ["A 0 10", "A 1 10", "A 2 10", "A 3 10", "A 4 10", "A 5 10", "A 6 10", "A 7 10", "A 8 10", "A 9 10",
+              "B 0 6", "B 1 6", "B 2 6", "B 3 6", "B 4 6", "B 5 6"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet numpy pandas scikit-learn
+      - name: Forecast
+        working-directory: level
+        run: python level.py ../inputs/daily.csv ${{ matrix.job }}
+      - name: Name
+        id: n
+        run: echo "name=$(echo '${{ matrix.job }}' | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: level-${{ steps.n.outputs.name }}
+          path: level/part*.csv
+
+  collect:
+    needs: run
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: level-*
+          path: art
+          merge-multiple: true
+      - name: One file per part
+        run: |
+          python - <<'PY'
+          import glob, pandas as pd
+          for p in "AB":
+              fs = sorted(glob.glob(f"art/**/part{p}_*.csv", recursive=True))
+              if fs:
+                  pd.concat(map(pd.read_csv, fs)).sort_values(["date", "variant", "hour"]).to_csv(f"level/forecasts_{p}.csv", index=False)
+                  print(p, len(fs), "files")
+          PY
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add level/forecasts_*.csv
+          git diff --cached --quiet && exit 0
+          git commit -m "level test: forecasts"
+          git pull --rebase && git push

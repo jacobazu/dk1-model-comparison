@@ -1,5 +1,8 @@
 # Result (12 Nov 2026)
 
+Short version: the live challenger is the ensemble with LEAR-X and XGBoost-X on prices relative to gas and BMT-X as it
+is (Part C, at the end). Parts A and B came first and are kept as they were written.
+
 Scored by `evaluate.py`, which was committed before the forecasts were in. Numbers are €/MWh; bias is actual minus
 forecast.
 
@@ -45,3 +48,48 @@ LEAR-X replaced by this version.
 The archived inputs had no neighbour prices or DK1 weather after 12 Oct 2026, so the GitHub run skipped Part A's last
 28 days. They were run afterwards with the price repo's live inputs (`live_days.py`), which match the archive exactly
 on the 104 days both cover. The scores above include them, as the rules say.
+
+# Part C: all three live models (12 Nov 2026, evening)
+
+Scored by `evaluate_models.py`, committed before the run. The live R code, 405 days.
+
+## Each model, relative to gas against as it is
+
+| | Error as it is | Relative to gas | Bias as it is | Relative to gas | Holm p |
+|---|---|---|---|---|---|
+| LEAR-X | 19.64 | 17.95 | +9.0 | +2.6 | 0.03 |
+| BMT-X | 19.22 | 19.00 | +7.0 | +2.3 | 0.69 |
+| XGBoost-X | 19.16 | 17.47 | +4.8 | +1.9 | 0.00 |
+
+The bias falls for all three. The error falls for LEAR-X and XGBoost-X, not for BMT-X.
+
+## The ensemble: which models to switch
+
+`now`, the average of the three as they are: error 17.93, bias +7.0.
+
+| Switched to gas | Error | Bias | Bias on high days | Holm p |
+|---|---|---|---|---|
+| LEAR-X | 16.79 | +4.8 | +6.9 | 0.00 |
+| BMT-X | 16.95 | +5.4 | +7.8 | 0.00 |
+| XGBoost-X | 17.00 | +6.0 | +9.1 | 0.00 |
+| LEAR-X, BMT-X | 16.83 | +3.2 | +2.9 | 0.02 |
+| **LEAR-X, XGBoost-X** | **16.28** | +3.8 | +4.2 | 0.00 |
+| BMT-X, XGBoost-X | 16.35 | +4.4 | +5.1 | 0.00 |
+| all three | 16.77 | +2.3 | +0.2 | 0.03 |
+
+All seven pass. The winner by the rule is LEAR-X and XGBoost-X switched, BMT-X as it is: 9% lower error.
+
+Split by period, error (bias): the 377 backtest days, now 17.0 (+6.0), winner 15.8 (+3.9); the 28 live days, now
+30.7 (+19.6), winner 22.8 (+3.0). Switching all three removes more bias but overshoots on the live days (−6.4) and
+has a higher error.
+
+## Live
+
+`ensemble_gasrel` in jacobazu/dk1-price-forecasting is now this winner, from the forecast for 14 Nov 2026, changed
+before the earlier LEAR-X-only version had a live day. Early check 15 Dec 2026, otherwise 1 Mar 2027.
+
+The caveats from above stand: the idea came from these days, and gas has no untouched period. Seven candidates were
+compared and the best one picked, so its 16.28 is a little flattering; the live record decides.
+
+One thing that went differently: `evaluate_models.py` imported two functions from the wrong file and stopped. The
+same two functions were copied into it; nothing in the scoring changed.

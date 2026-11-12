@@ -4,7 +4,22 @@ from itertools import combinations
 import numpy as np, pandas as pd
 sys.path.insert(0, "..")
 from common import load
-from evaluate import dm, holm
+from math import erf, sqrt
+
+
+# the same two functions as in evaluate.py (importing them ran the wrong file)
+def dm(d, lags=7):
+    d = np.asarray(d, float); n = len(d); m = d.mean(); e = d - m
+    v = e @ e / n + 2 * sum((1 - k / (lags + 1)) * (e[k:] @ e[:-k]) / n for k in range(1, lags + 1))
+    t = m / np.sqrt(v / n)
+    return m, t, 2 * (1 - 0.5 * (1 + erf(abs(t) / sqrt(2))))
+
+
+def holm(p):
+    p = np.asarray(p); o = np.argsort(p); out = np.empty(len(p)); run = 0
+    for i, j in enumerate(o):
+        run = max(run, min(1, (len(p) - i) * p[j])); out[j] = run
+    return out
 
 D = load("daily_with_live.csv")
 day = pd.Series(np.nanmean(D["P"], axis=1), index=pd.to_datetime(D["dates"]))

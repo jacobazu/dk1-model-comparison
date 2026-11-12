@@ -1,0 +1,45 @@
+name: collect level
+
+# gathers the level run's forecasts into one csv per part (the run's own collect step had no pandas)
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/level_collect.yml"]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: level-*
+          path: art
+          merge-multiple: true
+          run-id: 43272077779
+          github-token: ${{ github.token }}
+      - name: One file per part
+        run: |
+          python - <<'PY'
+          import glob, csv
+          for p in "AB":
+              rows, head = [], None
+              for f in sorted(glob.glob(f"art/**/part{p}_*.csv", recursive=True)):
+                  with open(f) as fh:
+                      r = list(csv.reader(fh)); head = r[0]; rows += r[1:]
+              rows.sort(key=lambda r: (r[1], r[3], int(r[2])))
+              with open(f"level/forecasts_{p}.csv", "w", newline="") as fh:
+                  w = csv.writer(fh); w.writerow(head); w.writerows(rows)
+              print(p, len(rows) // 24, "day-variants")
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add level/forecasts_*.csv
+          git commit -m "level test: forecasts" || echo "nothing new"
+          git pull --rebase && git push

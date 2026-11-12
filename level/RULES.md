@@ -45,3 +45,22 @@ average or multiplying by the gas price. Nothing is tuned.
 - A winner runs live as a challenger from the next morning, saved before the auction and not shown, and is judged
   with the other challengers (early check 15 Dec 2026, otherwise 1 Mar 2027). Only that live record is proof.
 - If nothing passes, that is the result.
+
+# Part C: all three live models, and which of them to switch (added 12 Nov 2026, before it was run)
+
+Part A picked prices relative to gas, on LEAR-X only. The live forecast is the average of three models, so:
+
+- Models: LEAR-X, BMT-X and XGBoost-X, the live R code unchanged (jacobazu/dk1-price-forecasting at a fixed commit,
+  packages from its lock file), each as it is and on prices relative to gas. Part A's 405 days.
+- Per model, reported: error and bias, relative to gas against as it is, Diebold-Mariano with Newey-West (7 lags),
+  Holm over the three.
+- The decision is about the ensemble. `now` is the average of the three as they are. The candidates are the seven ways
+  to switch one, two or all three of them to gas.
+- A candidate passes if it beats `now` with Holm p < 0.05 over the seven, and its error on normal days is not more
+  than 3% above `now`'s. The winner is the passing candidate with the lowest error.
+- The winner becomes the live challenger `ensemble_gasrel`, in place of the LEAR-X-only version set earlier today,
+  before that has had a live day. If none passes, there is no ensemble challenger; the three gas versions are still
+  saved each day.
+- Not tested: the networks, Chronos-2, Timestral and TabPFN. On the backtest's high-price days Chronos-2 and Timestral
+  have no bias (+0.1 and +2.9) and the networks about +4 to +5, against +7 to +11 for these three.
+- The same caveat as Part A: the idea came from these days. The live record decides.

@@ -1,0 +1,67 @@
+name: level gasm
+
+# parts D and E of level/RULES.md: lear-x on prices relative to last month's gas price
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        job: ["D 0 8", "D 1 8", "D 2 8", "D 3 8", "D 4 8", "D 5 8", "D 6 8", "D 7 8", "E 0 6", "E 1 6", "E 2 6", "E 3 6", "E 4 6", "E 5 6"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet numpy pandas scikit-learn
+      - name: Forecast
+        working-directory: level
+        run: python level.py daily_with_live.csv ${{ matrix.job }}
+      - name: Name
+        id: n
+        run: echo "name=$(echo '${{ matrix.job }}' | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gasm-${{ steps.n.outputs.name }}
+          path: level/part*.csv
+
+  collect:
+    needs: run
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          pattern: gasm-*
+          path: art
+          merge-multiple: true
+      - name: One file per part
+        run: |
+          python3 - <<'PY'
+          import glob, csv
+          for p in "DE":
+              rows, head = [], None
+              for f in sorted(glob.glob(f"art/**/part{p}_*.csv", recursive=True)):
+                  with open(f) as fh:
+                      r = list(csv.reader(fh)); head = r[0]; rows += r[1:]
+              if head:
+                  rows.sort(key=lambda r: (r[1], r[3], int(r[2])))
+                  with open(f"level/forecasts_{p}.csv", "w", newline="") as fh:
+                      w = csv.writer(fh); w.writerow(head); w.writerows(rows)
+                  print(p, len(rows) // 24, "days")
+          PY
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add level/forecasts_D.csv level/forecasts_E.csv
+          git commit -m "level test, parts D and E: forecasts" || echo "nothing new"
+          git pull --rebase && git push

@@ -8,7 +8,18 @@ from common import load, mad
 warnings.filterwarnings("ignore")
 
 PARTS = {"A": ("2025-10-01", "2026-11-09", ("nb", "hol", "wx", "wxde"), ("now", "level7", "level28", "gas")),
-         "B": ("2021-07-01", "2022-12-31", ("nb", "hol"), ("now", "level7", "level28"))}
+         "B": ("2021-07-01", "2022-12-31", ("nb", "hol"), ("now", "level7", "level28")),
+         "D": ("2021-07-01", "2022-12-31", ("nb", "hol"), ("gasm",)),
+         "E": ("2025-10-01", "2026-11-09", ("nb", "hol", "wx", "wxde"), ("gasm",))}
+
+
+def monthly_gas(dates):
+    """last month's neutral gas price, €/MWh, for each day: a month's price is only known after it"""
+    from pathlib import Path
+    m = pd.read_csv(Path(__file__).with_name("gas_monthly_raw.csv"), header=None, names=["month", "dkk_kwh"])
+    m = pd.Series(m.dkk_kwh.to_numpy() * 1000 / 7.44, index=pd.to_datetime(m.month).dt.to_period("M"))
+    prev = pd.to_datetime(pd.Series(dates).astype(str)).dt.to_period("M") - 1
+    return prev.map(m).to_numpy(dtype=float)
 
 
 def base(D, variant):
@@ -20,6 +31,8 @@ def base(D, variant):
         a = np.array([np.mean(day[i - k:i]) if i >= k else np.nan for i in range(n)])   # the k days before, all known
     elif variant == "gas":
         b = D["ex"]["fuel"][:, 0]   # gas price two days before, known in the morning
+    elif variant == "gasm":
+        b = monthly_gas(D["dates"])
     return a, b
 
 

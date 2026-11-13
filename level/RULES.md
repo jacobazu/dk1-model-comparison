@@ -64,3 +64,18 @@ Part A picked prices relative to gas, on LEAR-X only. The live forecast is the a
 - Not tested: the networks, Chronos-2, Timestral and TabPFN. On the backtest's high-price days Chronos-2 and Timestral
   have no bias (+0.1 and +2.9) and the networks about +4 to +5, against +7 to +11 for these three.
 - The same caveat as Part A: the idea came from these days. The live record decides.
+
+# Parts D and E: the gas fix on 2021-22, with a monthly gas price (added 13 Nov 2026, before it was run)
+
+The daily gas price here only starts in October 2022, so the gas version can't run on the untouched 2021-22 period.
+Energi Data Service has a monthly neutral gas price from 2019 (`gas_monthly_raw.csv`, DKK/kWh, turned into €/MWh at
+7.44 DKK per euro). A month's price is only known after the month, so each day uses the month before: `gasm`, prices
+divided by last month's gas price. Everything else as `gas`.
+
+- Part E: `gasm` on LEAR-X on Part A's 405 days (live inputs), to see how close the monthly stand-in comes to the
+  daily `gas` version there.
+- Part D: `gasm` on Part B's 549 days (1 Jul 2021 to 31 Dec 2022, prices, neighbours, holidays and weekdays only), set
+  against Part B's `now`.
+- The gas fix counts as confirmed on an untouched period if `gasm` beats `now` in Part D (Diebold-Mariano, Newey-West
+  7 lags, p < 0.05) and in Part E keeps at least half of `gas`'s gain over `now`. If `gasm` fails Part E, Part D says
+  little either way. If it passes E but fails D, the gas fix is not confirmed.

@@ -24,7 +24,7 @@ jobs:
       # the daily price above only starts in late 2022. the monthly neutral gas price goes further back
       - name: Monthly
         run: |
-          curl -s -m 120 "https://api.energidataservice.dk/dataset/GasMonthlyNeutralPrice?start=2019-01-01&end=2023-07-01&limit=0&sort=Month%20asc" > m.json
+          curl -s -m 120 "https://api.energidataservice.dk/dataset/GasMonthlyNeutralPrice?start=2019-01-01&end=now&limit=0&sort=Month%20asc" > m.json
           jq -r '.records | length' m.json
           jq -r '.records[0] | keys | join(",")' m.json
           jq -r '.records[0:3][] | tostring' m.json

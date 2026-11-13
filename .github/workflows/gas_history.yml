@@ -21,10 +21,19 @@ jobs:
           echo "day,gas" > level/gas_history.csv
           jq -r '.records[] | select(.EEXSpotIndexEUR_MWh != null) | "\(.GasDay[0:10]),\(.EEXSpotIndexEUR_MWh)"' raw.json >> level/gas_history.csv
           echo "rows with a price: $(($(wc -l < level/gas_history.csv) - 1))"; head -3 level/gas_history.csv; tail -2 level/gas_history.csv
+      # the daily price above only starts in late 2022. the monthly neutral gas price goes further back
+      - name: Monthly
+        run: |
+          curl -s -m 120 "https://api.energidataservice.dk/dataset/GasMonthlyNeutralPrice?start=2019-01-01&end=2023-07-01&limit=0&sort=Month%20asc" > m.json
+          jq -r '.records | length' m.json
+          jq -r '.records[0] | keys | join(",")' m.json
+          jq -r '.records[0:3][] | tostring' m.json
+          jq -r '.records[] | [.Month, (.MonthlyNeutralGasPriceDKK_kWh // .NeutralGasPriceDKK_kWh // "")] | @csv' m.json > level/gas_monthly_raw.csv || true
+          head -3 level/gas_monthly_raw.csv
       - name: Save
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add level/gas_history.csv
+          git add level/gas_history.csv level/gas_monthly_raw.csv
           git commit -m "gas history from energi data service" || exit 0
           git pull --rebase && git push

@@ -1,0 +1,30 @@
+name: gas history
+
+# daily gas price (eex spot index, €/MWh) from energi data service as far back as it goes, for testing the gas fix
+# on 2021-22. saved to level/gas_history.csv
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Fetch
+        run: |
+          curl -s -m 120 "https://api.energidataservice.dk/dataset/GasDailyBalancingPrice?start=2019-01-01&end=2023-07-01&limit=0&sort=GasDay%20asc" > raw.json
+          jq -r '.records | length' raw.json
+          jq -r '.records[0] | keys | join(",")' raw.json
+          echo "day,gas" > level/gas_history.csv
+          jq -r '.records[] | select(.EEXSpotIndexEUR_MWh != null) | "\(.GasDay[0:10]),\(.EEXSpotIndexEUR_MWh)"' raw.json >> level/gas_history.csv
+          echo "rows with a price: $(($(wc -l < level/gas_history.csv) - 1))"; head -3 level/gas_history.csv; tail -2 level/gas_history.csv
+      - name: Save
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add level/gas_history.csv
+          git commit -m "gas history from energi data service" || exit 0
+          git pull --rebase && git push

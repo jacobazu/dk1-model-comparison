@@ -1,10 +1,9 @@
 name: level
 
 # lear-x with prices relative to a moving level, level/RULES.md. part A in 10 jobs, part B in 6, one csv each
+# by hand only: the test is done, and later changes to level.py (the gas variants) have their own workflows
 on:
   workflow_dispatch:
-  push:
-    paths: [".github/workflows/level.yml", "level/level.py"]
 
 permissions:
   contents: write

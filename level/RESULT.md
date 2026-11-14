@@ -93,3 +93,21 @@ compared and the best one picked, so its 16.28 is a little flattering; the live 
 
 One thing that went differently: `evaluate_models.py` imported two functions from the wrong file and stopped. The
 same two functions were copied into it; nothing in the scoring changed.
+
+## Parts D and E: 2021-22 with a monthly gas price (run 13 Nov, scored 14 Nov 2026)
+
+`score_gasm.py`, `scores_gasm.csv`. LEAR-X only.
+
+| Part | Days | As it is | Daily gas | Monthly gas (`gasm`) | Gain of `gasm` | p |
+|---|---|---|---|---|---|---|
+| E: Oct 2025 – Nov 2026 | 405 | 19.46 (+8.8) | 17.94 (+2.6) | 18.21 (+4.0) | 1.25 | 0.06 |
+| D: Jul 2021 – Dec 2022 | 549 | 40.59 (+10.4) | no daily gas then | 40.74 (−2.2) | −0.15 | 0.89 |
+
+Error in €/MWh, bias in brackets (plus = forecast too low).
+
+- Part E passes: the monthly stand-in keeps 82% of the daily version's gain, more than the half the rule asks for.
+- Part D fails: on 2021-22 it removes the bias (+10.4 to −2.2) but the error doesn't fall at all.
+- So by the rule the gas fix is **not confirmed** on an untouched period. In the crisis the misses were mostly
+  day-to-day swings, not a level that was off, and fixing the level didn't help with those.
+- Nothing changes live: `ensemble_gasrel` stays a challenger and the live record decides on its check date. It
+  lowers bias in both periods; whether it lowers the error outside 2025-26 is now an open question.

@@ -1,0 +1,6 @@
+part,variant,days,mae,bias,gain_vs_now,dm_t,p,share_of_gas_gain,passes
+E,now,405,19.46,8.794,,,,,
+E,gas,405,17.944,2.585,,,,,
+E,gasm,405,18.214,3.954,1.246,1.891,0.059,0.822,True
+D,now,549,40.592,10.405,,,,,
+D,gasm,549,40.741,-2.197,-0.15,-0.144,0.885,,False

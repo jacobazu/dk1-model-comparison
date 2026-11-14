@@ -16,6 +16,7 @@ Results: [jacobazu.github.io/models](https://jacobazu.github.io/models/)
 - All 511 mixes of the nine candidate models were scored. 247 of them can't be told apart from the best at the 90% level (model confidence set), so the ranking at the top is noise. Beating today's forecast is not.
 - Timestral came out after the test days, so it may have seen them in training. It is shown but kept out of the mixes, and only its live record counts.
 - Winners don't replace the live forecast on a backtest. Chronos-2 with today's models, Chronos-2 with the PyTorch network, and Timestral with today's models run live as challengers from 13 Nov 2026, saved before each auction. They get one early check on 15 Dec 2026 (p < 0.01), otherwise they are judged on 1 Mar 2027.
+- Gas fix tested on 2021-22 as well, with a monthly gas price (`level/RESULT.md`, Parts D and E): it removes the bias there too, but the error doesn't fall, so it is not confirmed outside 2025-26. It stays a live challenger.
 
 TabPFN is too slow for a laptop over a full year, so its days were split over parallel GitHub jobs here.
 
